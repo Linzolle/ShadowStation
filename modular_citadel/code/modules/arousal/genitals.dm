@@ -226,7 +226,6 @@
 	var/breastCheck = FALSE
 	var/willyCheck = FALSE
 	if(!canbearoused)
-		ADD_TRAIT(src, TRAIT_PHARMA, "pharma")//Prefs prevent unwanted organs.
 		return
 	for(var/O in internal_organs)
 		if(istype(O, /obj/item/organ/genital))
@@ -257,7 +256,7 @@
 /datum/species/proc/handle_genitals(mob/living/carbon/human/H)//more like handle sadness
 	if(!H)//no args
 		CRASH("H = null")
-	if(!LAZYLEN(H.internal_organs) || ((NOGENITALS in species_traits) && !H.genital_override) || HAS_TRAIT(H, TRAIT_HUSK))
+	if(!LAZYLEN(H.internal_organs) || NOGENITALS in species_traits || H.has_trait(TRAIT_HUSK))
 		return
 	var/list/relevant_layers = list(GENITALS_BEHIND_LAYER, GENITALS_FRONT_LAYER)
 

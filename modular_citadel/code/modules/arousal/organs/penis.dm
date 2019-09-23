@@ -11,6 +11,7 @@
 	size = 2 //arbitrary value derived from length and girth for sprites.
 	layer_index = PENIS_LAYER_INDEX
 	var/length = 6 //inches
+	var/prev_length = 6 //really should be renamed to prev_length
 	var/cached_length //used to detect a change in length
 	var/girth = 4.38
 	var/girth_ratio = COCK_GIRTH_RATIO_DEF //0.73; check citadel_defines.dm
@@ -63,7 +64,7 @@
 /obj/item/organ/genital/penis/get_features(mob/living/carbon/human/H)
 	var/datum/dna/D = H.dna
 	if(D.species.use_skintones && D.features["genitals_use_skintone"])
-		color = "#[skintone2hex(H.skin_tone)]"src
+		color = "#[skintone2hex(H.skin_tone)]"
 			linked_organ.size = size
 	else
 		color = "#[D.features["cock_color"]]"
