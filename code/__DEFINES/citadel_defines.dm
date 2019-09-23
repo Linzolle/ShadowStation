@@ -18,6 +18,22 @@
 #define CIT_FILTER_STAMINACRIT filter(type="drop_shadow", x=0, y=0, size=-3, border=0, color="#04080F")
 
 //organ defines
+#define VAGINA_LAYER_INDEX		1
+#define TESTICLES_LAYER_INDEX	2
+#define GENITAL_LAYER_INDEX		3
+#define PENIS_LAYER_INDEX		4
+
+#define GENITAL_LAYER_INDEX_LENGTH 4 //keep it updated with each new index added, thanks.
+
+//genital flags
+#define GENITAL_BLACKLISTED		(1<<0) //for genitals that shouldn't be added to GLOB.genitals_list.
+#define GENITAL_INTERNAL		(1<<1)
+#define GENITAL_HIDDEN			(1<<2)
+#define GENITAL_THROUGH_CLOTHES	(1<<3)
+#define GENITAL_FUID_PRODUCTION	(1<<4)
+#define CAN_MASTURBATE_WITH		(1<<5)
+#define MASTURBATE_LINKED_ORGAN	(1<<6) //used to pass our mission to the linked organ
+#define CAN_CLIMAX_WITH			(1<<7)
 #define COCK_SIZE_MIN		1
 #define COCK_SIZE_MAX		20
 

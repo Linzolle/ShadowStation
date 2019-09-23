@@ -1,76 +1,59 @@
 /obj/item/organ/genital/testicles
-	name 					= "testicles"
-	desc 					= "A male reproductive organ."
-	icon_state 				= "testicles"
-	icon 					= 'modular_citadel/icons/obj/genitals/testicles.dmi'
-	zone 					= "groin"
-	slot 					= "testicles"
-	size 					= BALLS_SIZE_MIN
-	var/size_name			= "average"
-	shape					= "single"
-	var/sack_size			= BALLS_SACK_SIZE_DEF
-	fluid_id 				= "semen"
-	producing				= TRUE
-	can_masturbate_with		= TRUE
-	masturbation_verb 		= "massage"
-	can_climax				= TRUE
-	var/sent_full_message	= TRUE //defaults to 1 since they're full to start
+	name = "testicles"
+	desc = "A male reproductive organ."
+	icon_state = "testicles"
+	icon = 'modular_citadel/icons/obj/genitals/testicles.dmi'
+	zone = BODY_ZONE_PRECISE_GROIN
+	slot = ORGAN_SLOT_TESTICLES
+	size = BALLS_SIZE_MIN
+	linked_organ_slot = ORGAN_SLOT_PENIS
+	genital_flags = CAN_MASTURBATE_WITH|MASTURBATE_LINKED_ORGAN|GENITAL_FUID_PRODUCTION
+	var/size_name = "average"
+	shape = "Single"
+	var/sack_size = BALLS_SACK_SIZE_DEF
+	fluid_id = "semen"
+	masturbation_verb = "massage"
+	layer_index = TESTICLES_LAYER_INDEX
+	var/size_linked = FALSE
 
-/obj/item/organ/genital/testicles/Initialize()
-	. = ..()
-	reagents.add_reagent(fluid_id, fluid_max_volume)
-
-/obj/item/organ/genital/testicles/on_life()
-	if(QDELETED(src))
-		return
-	if(reagents && producing)
-		generate_cum()
-
-/obj/item/organ/genital/testicles/proc/generate_cum()
-	reagents.maximum_volume = fluid_max_volume
-	if(reagents.total_volume >= reagents.maximum_volume)
-		if(!sent_full_message)
-			send_full_message()
-			sent_full_message = TRUE
-		return FALSE
-	sent_full_message = FALSE
-	update_link()
-	if(!linked_organ)
+/obj/item/organ/genital/testicles/generate_fluid()
+	if(!linked_organ && !update_link())
 		return FALSE
 	reagents.isolate_reagent(fluid_id)//remove old reagents if it changed and just clean up generally
 	reagents.add_reagent(fluid_id, (fluid_mult * fluid_rate))//generate the cum
-
-/obj/item/organ/genital/testicles/update_link()
-	if(owner && !QDELETED(src))
-		linked_organ = (owner.getorganslot("penis"))
-		if(linked_organ)
-			linked_organ.linked_organ = src
-
-	else
-		if(linked_organ)
-			linked_organ.linked_organ = null
-		linked_organ = null
+	. = ..()
+	if(. && reagents.holder_full())
+		to_chat(owner, "Your balls finally feel full, again.")
 
 /obj/item/organ/genital/testicles/proc/send_full_message(msg = "Your balls finally feel full, again.")
 	if(owner && istext(msg))
 		to_chat(owner, msg)
 		return TRUE
 
-/obj/item/organ/genital/testicles/update_appearance()
-	if(owner)
-		if(size == 0)
-			size_name = "nonexistant"
-		if(size == 1)
-			size_name = "average"
-		if(size == 2)
-			size_name = "enlarged"
-		if(size >= 3)
-			size_name = "engorged"
+/obj/item/organ/genital/testicles/update_link(removing = FALSE)
+	. = ..()
+	if(. && !size_linked)
+		size = linked_organ.size
+		update()
+		size_linked = TRUE
 
-		if(!internal)
-			desc = "You see an [size_name] pair of testicles dangling."
+/obj/item/organ/genital/testicles/update_size(new_size)
+	if(new_size)
+		size = CLAMP(size + new_size, BALLS_SIZE_MIN, BALLS_SIZE_MAX)
+	if(owner)
+		if(BALLS_SIZE_MIN)
+			size_name = "average"
+		if(BALLS_SIZE_DEF)
+			size_name = "enlarged"
+		if(BALLS_SIZE_MAX)
+			size_name = "engorged"
 		else
-			desc = "They don't have any testicles you can see."
+			size_name = "nonexistant"
+
+/obj/item/organ/genital/testicles/update_appearance()
+	. = ..()
+	desc = "You see an [size_name] pair of testicles."
+	if (owner)
 		var/string
 		if(owner.dna.species.use_skintones && owner.dna.features["genitals_use_skintone"])
 			if(ishuman(owner)) // Check before recasting type, although someone fucked up if you're not human AND have use_skintones somehow...
@@ -84,3 +67,18 @@
 			var/mob/living/carbon/human/H = owner
 			icon_state = sanitize_text(string)
 			H.update_genitals()
+
+/obj/item/organ/genital/testicles/get_features(mob/living/carbon/human/H)
+	var/datum/dna/D = H.dna
+	if(D.species.use_skintones && D.features["genitals_use_skintone"])
+		color = "#[skintone2hex(H.skin_tone)]"
+	else
+		color = "#[D.features["balls_color"]]"
+	sack_size = D.features["balls_sack_size"]
+	shape = D.features["balls_shape"]
+	if(D.features["balls_shape"] == "Hidden")
+		ENABLE_BITFIELD(genital_flags, GENITAL_INTERNAL)
+	fluid_id = D.features["balls_fluid"]
+	fluid_rate = D.features["balls_cum_rate"]
+	fluid_mult = D.features["balls_cum_mult"]
+	fluid_efficiency = D.features["balls_efficiency"]

@@ -1,40 +1,34 @@
 /obj/item/organ/genital/breasts
-	name 					= "breasts"
-	desc 					= "Female milk producing organs."
-	icon_state 				= "breasts"
-	icon 					= 'modular_citadel/icons/obj/genitals/breasts.dmi'
-	zone 					= "chest"
-	slot 					= "breasts"
-	size 					= BREASTS_SIZE_DEF
-	fluid_id				= "milk"
-	var/amount				= 2
-	producing				= TRUE
-	shape					= "pair"
-	can_masturbate_with		= TRUE
-	masturbation_verb 		= "massage"
-	can_climax				= TRUE
-	fluid_transfer_factor 	= 0.5
+	name = "breasts"
+	desc = "Female milk producing organs."
+	icon_state = "breasts"
+	icon = 'modular_citadel/icons/obj/genitals/breasts.dmi'
+	zone = BODY_ZONE_CHEST
+	slot = ORGAN_SLOT_BREASTS
+	size = BREASTS_SIZE_DEF
+	fluid_id = "milk"
+	shape = "pair"
+	genital_flags = CAN_MASTURBATE_WITH|CAN_CLIMAX_WITH|GENITAL_FUID_PRODUCTION
+	masturbation_verb = "massage"
+	orgasm_verb = "leaking"
+	fluid_transfer_factor = 0.5
+	var/list/static/breast_values = list("a" =  1, "b" = 2, "c" = 3, "d" = 4, "e" = 5, "f" = 6, "g" = 7, "h" = 8, "i" = 9, "j" = 10, "k" = 11, "l" = 12, "m" = 13, "n" = 14, "o" = 15, "huge" = 16, "flat" = 0)
+	var/cached_size //for enlargement SHOULD BE A NUMBER
+	var/prev_size //For flavour texts SHOULD BE A LETTER
 
 /obj/item/organ/genital/breasts/Initialize()
 	. = ..()
 	reagents.add_reagent(fluid_id, fluid_max_volume)
 
-/obj/item/organ/genital/breasts/on_life()
-	if(QDELETED(src))
-		return
-	if(!reagents || !owner)
-		return
-	reagents.maximum_volume = fluid_max_volume
-	if(fluid_id && producing)
-		generate_milk()
-
-/obj/item/organ/genital/breasts/proc/generate_milk()
-	if(owner.stat == DEAD)
-		return FALSE
-	reagents.isolate_reagent(fluid_id)
-	reagents.add_reagent(fluid_id, (fluid_mult * fluid_rate))
+/obj/item/organ/genital/breasts/Initialize(mapload, mob/living/carbon/human/H)
+	if(!H)
+		cached_size = size
+		size = breast_values[size]
+		prev_size = size
+	return ..()
 
 /obj/item/organ/genital/breasts/update_appearance()
+	. = ..()
 	var/lowershape = lowertext(shape)
 	switch(lowershape)
 		if("pair")
@@ -49,7 +43,7 @@
 		desc += " You estimate that they're [uppertext(size)]-cups."
 	else
 		desc += " You wouldn't measure them in cup sizes."
-	if(producing && aroused_state)
+	if(CHECK_BITFIELD(genital_flags, GENITAL_FUID_PRODUCTION) && aroused_state)
 		desc += " They're leaking [fluid_id]."
 	var/string
 	if(owner)
